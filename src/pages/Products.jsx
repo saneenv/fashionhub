@@ -9,6 +9,7 @@ function Products() {
   const [products, setProducts] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -22,10 +23,20 @@ function Products() {
       .catch((err) => console.error("Error fetching products:", err));
   }, []);
 
+  // Reset to page 1 when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
+
+  // Filter by title (case-insensitive)
+  const filteredProducts = products.filter((p) =>
+    p.title.toLowerCase().includes(searchQuery.trim().toLowerCase())
+  );
+
   // Pagination calculations
-  const totalPages = Math.ceil(products.length / itemsPerPage);
+  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / itemsPerPage));
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const currentProducts = products.slice(startIndex, startIndex + itemsPerPage);
+  const currentProducts = filteredProducts.slice(startIndex, startIndex + itemsPerPage);
 
   return (
     <div className="min-h-screen flex flex-col gap-6 sm:gap-8 font-inter">
@@ -33,12 +44,25 @@ function Products() {
 
       {/* Page content wrapper */}
       <div className="flex flex-col gap-6 sm:gap-8 lg:px-12 md:px-8 px-4">
+
+
         {/* Header banner */}
         <img
           src={headerImg}
           alt="headerImg"
           className="rounded-lg w-full object-cover max-h-[220px] sm:max-h-[280px] md:max-h-[350px]"
         />
+
+        {/* Search */}
+        <div className="flex justify-center">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search products by title..."
+            className="w-full max-w-xl h-10 xs:h-11 sm:h-12 border-2 border-[#D0D5DD] rounded-2xl px-3 sm:px-4 text-sm sm:text-base"
+          />
+        </div>
 
         {/* Products Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5 md:gap-6 mt-4 sm:mt-6 md:mt-8 pb-6">

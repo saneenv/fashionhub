@@ -49,7 +49,7 @@ function Login() {
   return (
     <div className="flex flex-row items-center justify-center min-h-screen font-inter">
       {/* Left image section */}
-      <div className="w-[60%] h-full bg-[yellow] lg:flex hidden">
+      <div className="w-[60%] h-full lg:flex hidden">
         <img src={loginImg} alt="Login" className="w-full" />
       </div>
 
@@ -77,6 +77,7 @@ function Login() {
               <input
                 type="email"
                 {...register("email")}
+                placeholder="Enter your email"
                 className="h-[48px] sm:h-[54px] w-full border-2 border-[#9E9E9E] rounded-2xl p-4 sm:p-5"
               />
               {errors.email && (
@@ -90,6 +91,7 @@ function Login() {
               <input
                 type="password"
                 {...register("password")}
+                placeholder="Enter your password"
                 className="h-[48px] sm:h-[54px] w-full border-2 border-[#9E9E9E] rounded-2xl p-4 sm:p-5"
               />
               {errors.password && (

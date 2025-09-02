@@ -83,7 +83,7 @@ function Signup() {
   return (
     <div className="flex flex-row items-center justify-center min-h-screen font-inter">
       {/* Left image section (desktop only) */}
-      <div className="w-[60%] h-full bg-[yellow] lg:flex hidden">
+      <div className="w-[60%] h-full lg:flex hidden">
         <img src={SignupImg} alt="Signup" className="w-full h-full object-cover" />
       </div>
 
@@ -114,6 +114,7 @@ function Signup() {
               <input
                 type="text"
                 {...register("fullName")}
+                placeholder="Enter your full name"
                 className="h-[44px] sm:h-[50px] lg:h-[54px] w-full border-2 border-[#9E9E9E] rounded-xl p-3 sm:p-4"
               />
               {errors.fullName && (
@@ -127,6 +128,7 @@ function Signup() {
               <input
                 type="email"
                 {...register("email")}
+                placeholder="Enter your email"
                 className="h-[44px] sm:h-[50px] lg:h-[54px] w-full border-2 border-[#9E9E9E] rounded-xl p-3 sm:p-4"
               />
               {errors.email && (
@@ -140,6 +142,7 @@ function Signup() {
               <input
                 type="date"
                 {...register("dob")}
+                placeholder="Select your date of birth"
                 className="h-[44px] sm:h-[50px] lg:h-[54px] w-full border-2 border-[#9E9E9E] rounded-xl p-3 sm:p-4"
               />
               {errors.dob && (
@@ -153,6 +156,7 @@ function Signup() {
               <input
                 type="tel"
                 {...register("mobile")}
+                placeholder="Enter your mobile number"
                 className="h-[44px] sm:h-[50px] lg:h-[54px] w-full border-2 border-[#9E9E9E] rounded-xl p-3 sm:p-4"
               />
               {errors.mobile && (
@@ -166,6 +170,7 @@ function Signup() {
               <input
                 type="password"
                 {...register("password")}
+                placeholder="Create a password"
                 className="h-[44px] sm:h-[50px] lg:h-[54px] w-full border-2 border-[#9E9E9E] rounded-xl p-3 sm:p-4"
               />
               {errors.password && (

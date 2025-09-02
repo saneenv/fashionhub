@@ -1,16 +1,44 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import loginImg from "../assets/Login/login.png";
 import welcomeback from "../assets/Login/Welcome Back.png";
 import { useNavigate } from "react-router-dom";
+import { handleLogin } from "../services/authService"; // 👈 the helper you made
+import { useAuth } from "../context/AuthContext";
 
 function Login() {
   const navigate = useNavigate();
+  const { login } = useAuth();      // 👈 use context
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+  const onLogin = async () => {
+    if (!email || !password) {
+      alert("Please enter both email and password");
+      return;
+    }
+    try {
+      setLoading(true);
+      const userData = await handleLogin(email, password);
+      login(userData);  // ✅ updates context + localStorage
+      alert("Login successful!");
+      navigate("/products");
+    } catch (error) {
+      alert(error.message || "Invalid Username or Password");
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="flex flex-row items-center justify-center min-h-screen font-inter">
-      {/* Left image section (desktop only) */}
+      {/* Left image section */}
       <div className="w-[60%] h-full bg-[yellow] lg:flex hidden">
         <img src={loginImg} alt="Login" className="w-full" />
       </div>
@@ -19,27 +47,27 @@ function Login() {
       <div className="lg:w-[40%] w-full h-full flex flex-col lg:gap-12 gap-6 lg:items-center items-start 
                       justify-between lg:justify-center lg:px-0 px-5 pt-6 lg:pt-0 pb-[200px] lg:pb-0 relative">
 
-        {/* ---- Top content (Welcome + Form) ---- */}
+        {/* ---- Top content ---- */}
         <div className="flex flex-col gap-6 lg:gap-12 w-full lg:w-[80%]">
-          <div className="flex flex-col gap-2  lg:items-center lg:justify-center">
+          <div className="flex flex-col gap-2 lg:items-center lg:justify-center">
             <img
               src={welcomeback}
               alt="welcomeback"
               className="w-[150px] sm:w-[200px] lg:w-auto lg:max-w-none object-contain"
             />
-
             <span className="text-base sm:text-lg lg:text-center text-left font-[450] text-[#9E9E9E]">
               Please Login your Account
             </span>
           </div>
-
 
           <div className="flex flex-col gap-4">
             {/* Email */}
             <div className="flex flex-col gap-3">
               <span className="text-sm sm:text-lg font-[450] text-left">Email</span>
               <input
-                type="text"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="h-[48px] sm:h-[54px] w-full border-2 border-[#9E9E9E] rounded-2xl p-4 sm:p-5"
               />
             </div>
@@ -49,6 +77,8 @@ function Login() {
               <span className="text-sm sm:text-lg font-[450] text-left">Password</span>
               <input
                 type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 className="h-[48px] sm:h-[54px] w-full border-2 border-[#9E9E9E] rounded-2xl p-4 sm:p-5"
               />
             </div>
@@ -59,7 +89,7 @@ function Login() {
           </div>
         </div>
 
-        {/* ---- Bottom section (fixed on mobile/tablet) ---- */}
+        {/* ---- Bottom ---- */}
         <div
           className="flex flex-col lg:gap-6 gap-4 lg:w-[80%] w-full 
                      lg:static fixed bottom-0 left-0 px-5 lg:px-0 
@@ -67,12 +97,12 @@ function Login() {
         >
           {/* Sign in button */}
           <div
-            onClick={() => navigate("/products")}
+            onClick={onLogin}
             className="h-[48px] sm:h-[54px] w-full bg-black rounded-2xl 
                        flex justify-center items-center text-white 
                        font-[650] text-sm sm:text-base cursor-pointer"
           >
-            Sign in
+            {loading ? "Signing in..." : "Sign in"}
           </div>
 
           {/* OR divider */}
@@ -89,7 +119,10 @@ function Login() {
             <span className="text-sm sm:text-lg font-[400] text-[#9E9E9E]">
               Didn’t have an Account!?
             </span>
-            <span onClick={() => navigate("/signup")} className="font-[650] text-sm sm:text-base cursor-pointer hover:underline">
+            <span
+              onClick={() => navigate("/signup")}
+              className="font-[650] text-sm sm:text-base cursor-pointer hover:underline"
+            >
               Sign-up
             </span>
           </div>

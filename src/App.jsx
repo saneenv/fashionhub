@@ -7,12 +7,21 @@ import Products from "./pages/Products";
 import Profile from "./pages/Profile";
 
 function App() {
-  const { user } = useAuth(); // ✅ get user from custom hook
+  const { user, isHydrated } = useAuth(); // ✅ get user + hydration
 
   return (
     <div className="text-center">
       <Routes>
-        <Route path="/" element={<Navigate to="/login" />} />
+        <Route
+          path="/"
+          element={
+            isHydrated
+              ? user
+                ? <Navigate to="/products" />
+                : <Navigate to="/login" />
+              : null
+          }
+        />
         <Route
           path="/login"
           element={user ? <Navigate to="/products" /> : <Login />}

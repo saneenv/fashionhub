@@ -1,17 +1,65 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom"; //import navigation hook
 import logo from "../assets/Products/navbar/FashionHub.png";
 import cart from "../assets/Products/navbar/cart.png";
 import { Menu, X } from "lucide-react"; // hamburger and close icons
+import { useAuth } from "../context/AuthContext";
+import { db } from "../firebase";
+import { doc, getDoc } from "firebase/firestore";
 
 function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
     const navigate = useNavigate(); // initialize navigator
+    const { user } = useAuth();
+    const [profile, setProfile] = useState(null);
 
     const productPage = () => {
         navigate('/products');
-        window.location.reload(); // reload  after navigation
+      
     };
+
+    useEffect(() => {
+        const fetchProfile = async () => {
+            if (!user?.uid) {
+                setProfile(null);
+                return;
+            }
+            try {
+                const ref = doc(db, 'users', user.uid);
+                const snap = await getDoc(ref);
+                if (snap.exists()) setProfile(snap.data());
+                else setProfile(null);
+            } catch {
+                setProfile(null);
+            }
+        };
+        fetchProfile();
+    }, [user]);
+
+    const displayName = useMemo(() => {
+        return (
+            profile?.fullName || user?.displayName || (user?.email ? user.email.split('@')[0] : '')
+        );
+    }, [profile, user]);
+
+    const initials = useMemo(() => {
+        const name = displayName || '';
+        if (!name) return '';
+        return name
+            .split(' ')
+            .filter(Boolean)
+            .map((n) => n[0])
+            .join('')
+            .toUpperCase()
+            .slice(0, 2);
+    }, [displayName]);
+
+    const greeting = useMemo(() => {
+        const hour = new Date().getHours();
+        if (hour < 12) return 'Good Morning!';
+        if (hour < 17) return 'Good Afternoon!';
+        return 'Good Evening!';
+    }, []);
 
 
     return (
@@ -56,21 +104,12 @@ function Navbar() {
                     </div>
 
                     {/* Profile Circle */}
-                    {/* Profile Circle */}
                     <div
                         onClick={() => navigate("/profile")}
                         className="w-[36px] h-[36px] sm:w-[40px] sm:h-[40px] md:w-[45px] md:h-[45px] lg:w-[50px] lg:h-[50px] rounded-full bg-[#F5F1EE] flex justify-center items-center cursor-pointer
              text-[#1D364D] font-bold text-sm sm:text-base md:text-lg"
                     >
-                        {(() => {
-                            const name = "Scarlet Johnson"; // you can replace this with dynamic user name later
-                            const initials = name
-                                .split(" ")
-                                .map((n) => n[0])
-                                .join("")
-                                .toUpperCase();
-                            return initials;
-                        })()}
+                        {initials || "?"}
                     </div>
 
                     {/* Profile Text (clickable) */}
@@ -80,10 +119,10 @@ function Navbar() {
              hover:bg-gradient-to-r hover:from-pink-500 hover:to-purple-600 hover:text-white hover:shadow-lg"
                     >
                         <span className="text-xs sm:text-sm md:text-base font-[400] text-[#C0C3C6]">
-                            Good Morning!
+                            {greeting}
                         </span>
                         <span className="text-sm sm:text-base md:text-lg font-[600]">
-                            Scarlet Johnson
+                            {displayName || "Profile"}
                         </span>
                     </div>
 

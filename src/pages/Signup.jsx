@@ -4,9 +4,25 @@ import { useNavigate } from "react-router-dom";
 import { auth, db } from "../firebase";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
+import { useAuth } from "../context/AuthContext";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
+
+const schema = yup.object({
+  fullName: yup.string().min(2, "Enter your full name").required("Full name is required"),
+  email: yup.string().email("Enter a valid email").required("Email is required"),
+  dob: yup.string().required("Date of birth is required"),
+  mobile: yup
+    .string()
+    .matches(/^[0-9]{10}$/u, "Enter a valid 10-digit number")
+    .required("Mobile is required"),
+  password: yup.string().min(6, "Min 6 characters").required("Password is required"),
+});
 
 function Signup() {
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   // ✅ Form state
   const [formData, setFormData] = useState({
@@ -19,6 +35,11 @@ function Signup() {
 
   const [loading, setLoading] = useState(false);
 
+  const { register, handleSubmit, formState: { errors } } = useForm({
+    resolver: yupResolver(schema),
+    defaultValues: { fullName: "", email: "", dob: "", mobile: "", password: "" }
+  });
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -29,29 +50,27 @@ function Signup() {
   };
 
   // ✅ Signup handler
-  const handleSignup = async () => {
-    if (!formData.fullName || !formData.email || !formData.password) {
-      alert("Please fill all required fields");
-      return;
-    }
+  const handleSignup = async (values) => {
     try {
       setLoading(true);
       // Create user in Firebase Auth
       const userCredential = await createUserWithEmailAndPassword(
         auth,
-        formData.email,
-        formData.password
+        values.email,
+        values.password
       );
       const user = userCredential.user;
 
       // Save details in Firestore
       await setDoc(doc(db, "users", user.uid), {
-        fullName: formData.fullName,
-        email: formData.email,
-        dob: formData.dob,
-        mobile: formData.mobile,
+        fullName: values.fullName,
+        email: values.email,
+        dob: values.dob,
+        mobile: values.mobile,
       });
 
+      // Update context and persist
+      login(user);
       alert("Signup successful!");
       navigate("/products");
     } catch (error) {
@@ -88,17 +107,18 @@ function Signup() {
           </div>
 
           {/* Form Fields */}
-          <div className="flex flex-col gap-4">
+          <form id="signupForm" onSubmit={handleSubmit(handleSignup)} className="flex flex-col gap-4">
             {/* Full Name */}
             <div className="flex flex-col gap-2">
               <span className="text-sm sm:text-base lg:text-lg font-medium text-left">Full Name</span>
               <input
                 type="text"
-                name="fullName"
-                value={formData.fullName}
-                onChange={handleChange}
+                {...register("fullName")}
                 className="h-[44px] sm:h-[50px] lg:h-[54px] w-full border-2 border-[#9E9E9E] rounded-xl p-3 sm:p-4"
               />
+              {errors.fullName && (
+                <span className="text-red-500 text-sm">{errors.fullName.message}</span>
+              )}
             </div>
 
             {/* Email */}
@@ -106,11 +126,12 @@ function Signup() {
               <span className="text-sm sm:text-base lg:text-lg font-medium text-left">Email</span>
               <input
                 type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
+                {...register("email")}
                 className="h-[44px] sm:h-[50px] lg:h-[54px] w-full border-2 border-[#9E9E9E] rounded-xl p-3 sm:p-4"
               />
+              {errors.email && (
+                <span className="text-red-500 text-sm">{errors.email.message}</span>
+              )}
             </div>
 
             {/* Date Field */}
@@ -118,10 +139,12 @@ function Signup() {
               <span className="text-sm sm:text-base lg:text-lg font-medium text-left">Date of Birth</span>
               <input
                 type="date"
-                value={formData.dob}
-                onChange={handleChange}
+                {...register("dob")}
                 className="h-[44px] sm:h-[50px] lg:h-[54px] w-full border-2 border-[#9E9E9E] rounded-xl p-3 sm:p-4"
               />
+              {errors.dob && (
+                <span className="text-red-500 text-sm">{errors.dob.message}</span>
+              )}
             </div>
 
             {/* Mobile */}
@@ -129,10 +152,12 @@ function Signup() {
               <span className="text-sm sm:text-base lg:text-lg font-medium text-left">Mobile</span>
               <input
                 type="tel"
-                value={formData.mobile}
-                onChange={handleChange}
+                {...register("mobile")}
                 className="h-[44px] sm:h-[50px] lg:h-[54px] w-full border-2 border-[#9E9E9E] rounded-xl p-3 sm:p-4"
               />
+              {errors.mobile && (
+                <span className="text-red-500 text-sm">{errors.mobile.message}</span>
+              )}
             </div>
 
             {/* Password */}
@@ -140,13 +165,14 @@ function Signup() {
               <span className="text-sm sm:text-base lg:text-lg font-medium text-left">Password</span>
               <input
                 type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
+                {...register("password")}
                 className="h-[44px] sm:h-[50px] lg:h-[54px] w-full border-2 border-[#9E9E9E] rounded-xl p-3 sm:p-4"
               />
+              {errors.password && (
+                <span className="text-red-500 text-sm">{errors.password.message}</span>
+              )}
             </div>
-          </div>
+          </form>
         </div>
 
         {/* ---- Bottom section (fixed on mobile/tablet) ---- */}
@@ -156,14 +182,15 @@ function Signup() {
           bg-white lg:bg-transparent pb-4 lg:pb-0"
         >
           {/* Create Account button */}
-          <div
-            onClick={handleSignup}
+          <button
+            type="submit"
+            form="signupForm"
             className="h-[44px] sm:h-[50px] lg:h-[54px] w-full bg-black rounded-xl 
             flex justify-center items-center text-white 
             font-semibold text-sm sm:text-base cursor-pointer"
           >
             {loading ? "Creating..." : "Create Account"}
-          </div>
+          </button>
 
           {/* OR divider */}
           <div className="flex flex-row gap-3 sm:gap-5 justify-center items-center">

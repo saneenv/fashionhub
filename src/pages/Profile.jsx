@@ -1,18 +1,80 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { useAuth } from "../context/AuthContext"; // ✅ import context
+import { db } from "../firebase";
+import { doc, getDoc } from "firebase/firestore";
 
 function Profile() {
   const navigate = useNavigate();
   const { user, logout } = useAuth(); // ✅ get user + logout from context
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // If no user is logged in, redirect to login
-  if (!user) {
-    navigate("/login");
-    return null;
-  }
+  const formatDOB = (raw) => {
+    if (!raw) return "-";
+    try {
+      // If already in YYYY-MM-DD or YYYY/MM/DD
+      if (typeof raw === "string") {
+        const normalized = raw.replaceAll("/", "-");
+        const parts = normalized.split("-");
+        if (parts.length === 3) {
+          const [yyyy, mm, dd] = parts.map((p) => String(p).padStart(2, "0"));
+          if (yyyy.length === 4) return `${dd}-${mm}-${yyyy}`;
+        }
+        // Fallback: try Date parse
+        const d = new Date(raw);
+        if (!isNaN(d)) {
+          const dd = String(d.getDate()).padStart(2, "0");
+          const mm = String(d.getMonth() + 1).padStart(2, "0");
+          const yyyy = d.getFullYear();
+          return `${dd}-${mm}-${yyyy}`;
+        }
+        return raw;
+      }
+      // Firestore Timestamp or Date
+      const dateObj = raw?.toDate ? raw.toDate() : new Date(raw);
+      if (!isNaN(dateObj)) {
+        const dd = String(dateObj.getDate()).padStart(2, "0");
+        const mm = String(dateObj.getMonth() + 1).padStart(2, "0");
+        const yyyy = dateObj.getFullYear();
+        return `${dd}-${mm}-${yyyy}`;
+      }
+      return "-";
+    } catch {
+      return "-";
+    }
+  };
+
+  // If no user is logged in, redirect to login (avoid navigating during render)
+  useEffect(() => {
+    if (!user) navigate("/login");
+  }, [user, navigate]);
+
+  // Fetch user profile from Firestore
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (!user?.uid) {
+        setLoading(false);
+        return;
+      }
+      try {
+        const ref = doc(db, "users", user.uid);
+        const snapshot = await getDoc(ref);
+        if (snapshot.exists()) {
+          setProfile(snapshot.data());
+        } else {
+          setProfile(null);
+        }
+      } catch (_e) {
+        setProfile(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProfile();
+  }, [user]);
 
   // Generate initials from user name
   const getInitials = (name) =>
@@ -43,8 +105,20 @@ function Profile() {
           {/* User Info */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div className="p-4 bg-gray-50 rounded-xl shadow">
+              <p className="text-sm text-gray-500">Name</p>
+              <p className="font-semibold text-gray-800">{profile?.fullName || user.displayName || "-"}</p>
+            </div>
+            <div className="p-4 bg-gray-50 rounded-xl shadow">
               <p className="text-sm text-gray-500">Email</p>
               <p className="font-semibold text-gray-800">{user.email}</p>
+            </div>
+            <div className="p-4 bg-gray-50 rounded-xl shadow">
+              <p className="text-sm text-gray-500">Mobile</p>
+              <p className="font-semibold text-gray-800">{profile?.mobile || "-"}</p>
+            </div>
+            <div className="p-4 bg-gray-50 rounded-xl shadow">
+              <p className="text-sm text-gray-500">DOB</p>
+              <p className="font-semibold text-gray-800">{formatDOB(profile?.dob)}</p>
             </div>
           </div>
 

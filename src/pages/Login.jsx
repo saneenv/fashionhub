@@ -4,24 +4,34 @@ import welcomeback from "../assets/Login/Welcome Back.png";
 import { useNavigate } from "react-router-dom";
 import { handleLogin } from "../services/authService"; // 👈 the helper you made
 import { useAuth } from "../context/AuthContext";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
+
+const schema = yup.object({
+  email: yup.string().email("Enter a valid email").required("Email is required"),
+  password: yup
+    .string()
+    .min(6, "Password must be at least 6 characters")
+    .required("Password is required"),
+});
 
 function Login() {
   const navigate = useNavigate();
   const { login } = useAuth();      // 👈 use context
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const { register, handleSubmit, formState: { errors } } = useForm({
+    resolver: yupResolver(schema),
+    defaultValues: { email: "", password: "" }
+  });
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
-  const onLogin = async () => {
-    if (!email || !password) {
-      alert("Please enter both email and password");
-      return;
-    }
+  const onLogin = async ({ email, password }) => {
     try {
       setLoading(true);
       const userData = await handleLogin(email, password);
@@ -29,7 +39,7 @@ function Login() {
       alert("Login successful!");
       navigate("/products");
     } catch (error) {
-      alert(error.message || "Invalid Username or Password");
+      alert( "Invalid Username or Password");
       console.log(error);
     } finally {
       setLoading(false);
@@ -60,16 +70,18 @@ function Login() {
             </span>
           </div>
 
-          <div className="flex flex-col gap-4">
+          <form id="loginForm" onSubmit={handleSubmit(onLogin)} className="flex flex-col gap-4">
             {/* Email */}
             <div className="flex flex-col gap-3">
               <span className="text-sm sm:text-lg font-[450] text-left">Email</span>
               <input
                 type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                {...register("email")}
                 className="h-[48px] sm:h-[54px] w-full border-2 border-[#9E9E9E] rounded-2xl p-4 sm:p-5"
               />
+              {errors.email && (
+                <span className="text-red-500 text-sm">{errors.email.message}</span>
+              )}
             </div>
 
             {/* Password */}
@@ -77,16 +89,18 @@ function Login() {
               <span className="text-sm sm:text-lg font-[450] text-left">Password</span>
               <input
                 type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                {...register("password")}
                 className="h-[48px] sm:h-[54px] w-full border-2 border-[#9E9E9E] rounded-2xl p-4 sm:p-5"
               />
+              {errors.password && (
+                <span className="text-red-500 text-sm">{errors.password.message}</span>
+              )}
             </div>
 
             <span className="text-right font-[650] text-sm sm:text-base cursor-pointer">
               Forgot Password?
             </span>
-          </div>
+          </form>
         </div>
 
         {/* ---- Bottom ---- */}
@@ -96,14 +110,15 @@ function Login() {
                      bg-white lg:bg-transparent pb-4 lg:pb-0"
         >
           {/* Sign in button */}
-          <div
-            onClick={onLogin}
+          <button
+            type="submit"
+            form="loginForm"
             className="h-[48px] sm:h-[54px] w-full bg-black rounded-2xl 
                        flex justify-center items-center text-white 
                        font-[650] text-sm sm:text-base cursor-pointer"
           >
             {loading ? "Signing in..." : "Sign in"}
-          </div>
+          </button>
 
           {/* OR divider */}
           <div className="flex flex-row gap-3 sm:gap-5 justify-center items-center">

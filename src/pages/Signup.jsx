@@ -24,7 +24,7 @@ function Signup() {
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  // ✅ Form state
+  // Form state
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -44,12 +44,12 @@ function Signup() {
     window.scrollTo(0, 0);
   }, []);
 
-  // ✅ Handle input changes
+  //  Handle input changes
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.type === "date" ? "dob" : e.target.type === "tel" ? "mobile" : e.target.name || e.target.type]: e.target.value });
   };
 
-  // ✅ Signup handler
+  // Signup handler
   const handleSignup = async (values) => {
     try {
       setLoading(true);

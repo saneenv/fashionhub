@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import loginImg from "../assets/Login/login.png";
 import welcomeback from "../assets/Login/Welcome Back.png";
 import { useNavigate } from "react-router-dom";
-import { handleLogin } from "../services/authService"; // 👈 the helper you made
+import { handleLogin } from "../services/authService"; // the helper you made
 import { useAuth } from "../context/AuthContext";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -18,7 +18,7 @@ const schema = yup.object({
 
 function Login() {
   const navigate = useNavigate();
-  const { login } = useAuth();      // 👈 use context
+  const { login } = useAuth();      // use context
 
   const [loading, setLoading] = useState(false);
 
@@ -35,7 +35,7 @@ function Login() {
     try {
       setLoading(true);
       const userData = await handleLogin(email, password);
-      login(userData);  // ✅ updates context + localStorage
+      login(userData);  // updates context + localStorage
       alert("Login successful!");
       navigate("/products");
     } catch (error) {

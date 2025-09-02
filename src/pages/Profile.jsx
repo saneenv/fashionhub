@@ -2,13 +2,13 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import { useAuth } from "../context/AuthContext"; // ✅ import context
+import { useAuth } from "../context/AuthContext"; // import context
 import { db } from "../firebase";
 import { doc, getDoc } from "firebase/firestore";
 
 function Profile() {
   const navigate = useNavigate();
-  const { user, logout } = useAuth(); // ✅ get user + logout from context
+  const { user, logout } = useAuth(); // get user + logout from context
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -126,8 +126,8 @@ function Profile() {
           <div className="mt-8 text-center">
             <button
               onClick={() => {
-                logout(); // ✅ clear auth + localStorage
-                navigate("/login"); // ✅ redirect
+                logout(); // clear auth + localStorage
+                navigate("/login"); // redirect
               }}
               className="px-6 py-3 bg-black hover:opacity-90 transition rounded-xl text-white font-semibold shadow-lg cursor-pointer"
             >
